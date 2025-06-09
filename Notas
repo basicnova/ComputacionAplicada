@@ -1,0 +1,310 @@
+[⚠️ Suspicious Content] 
+Explicaciones del tp por el profe
+1) Configuración del entorno
+1- La máquina virtual está dividida en partes y comprimidas en formato “.rar”. Descargar y ensamblar los archivos utilizando herramientas como WinRar.
+2- La clave de root es desconocida inicialmente, por lo que deberá ser blanqueada antes de comenzar. Una vez dentro del sistema operativo, la misma debe ser cambiada por “palermo” (sin comillas).
+3- Establecer el nombre de hostname como TPServer.
+2) Servicios
+Nota: las pruebas de conectividad y acceso al sitio web deben realizarse desde una máquina física u otra máquina en la misma red.
+1- SSH: instalar y configurar el servicio de SSH. El servidor debe permitir el acceso al usuario root mediante una clave privada/pública, proporcionada junto con la máquina virtual en Blackboard.
+2- WEB: instalar y configurar el servidor Apache con soporte para PHP (versión 7.3 o superior). Configurar el servidor para servir el archivo “index.php” y “logo.png”, disponible junto con la máquina virtual en Blackboard.
+3) Base de datos: instalar y configurar MariaDB. Cargar, en el motor de base de datos, el script SQL, denominado “db.sql”, disponible junto con la máquina virtual en Blackboard.
+
+Explicaciones del tp por el profe
+Que kernel se esta usando?
+en Advanced options for Debian…
+ej: 5.1 o 4.19.
+Descargar winscp
+clase 4 se puede cambiar nombre a las claves
+
+
+
+1) Configuración del entorno
+1- La máquina virtual está dividida en partes y comprimidas en formato “.rar”. Descargar y ensamblar los archivos utilizando herramientas como WinRar.
+Descargados desde blackboard.
+Extraer part01.rar CON 7 ZIP para evitar errores de EOF.
+Ejecutar .ova
+Verificar que RED esté en “adaptador puente”, en la placa correcta, y en mi caso desitldar “conectado a cable”
+en: C:\Users\Nico\VirtualBox VMs\TPVMCA\
+
+2- La clave de root es desconocida inicialmente, por lo que deberá ser blanqueada antes de comenzar. Una vez dentro del sistema operativo, la misma debe ser cambiada por “palermo” (sin comillas).
+kernel utilizado (se ve al iniciar la MV, desde el GRUB BOOTLOADER): “Debian GNU/Linux, with Linux 5.10.0-30-amd64”
+previo a inicializar debian, durante el boot tocar e o ESC para iniciar el ¿BIOS/GRUB? 
+presionar e para entrar a los parametros de inicio del GRUB
+Vamos a forzar que el primer proceso en ser iniciado, es decir, init, ejecute el shell bash. | es necesario modificar los privilegios ro (read-only) a rw (read write) || el comando total es: rw init=/bin/bash
+Esto nos ejecuta una consola limitada, que nos permite escribir algunos comandos. y ACA vamos a poder blanquear la contraseña.
+/bin: archivos binarios ejecutables
+/bash: shell distinto al tipico CUAL SERIA?
+Si dejo el primer ro en read no va a funcionar ni va a poder escribir correctamente
+quiet es para reducir la cantidad de logs, lo eliminamos por si acaso.
+Presionar CTRL+X para correrlo.
+con passwd root puedo modificar la contrase;a, le voy a poner> “palermo”
+especifico root porque passwd solo va a modificar la contrase;a del usuario activo, y este podria llegar a ser otro que no sea root.
+reinicamos la MV, y booteamos el debian normal.
+ahora el login va a ser
+usuairo: root
+contrase;a: palermo
+
+3- Establecer el nombre de hostname como TPServer.
+hostname es el nombre de mi pc.
+no usar el comando hostname nombre porque lo va a modificar temporalmente, hay que ir a los files del sistema y modificarlo desde ahi
+Segun debian wiki, esta en /etc/hostname
+para eso vamos a cambiar el directorio a ese
+cd /etc/
+creamos una copia del archivo hostname por las dudas.
+cp hostname hostname_backup
+editamos hostname con vim.
+i : modo escritura, borramos debian y pongo nico
+: : modo EX, pongo :wq! para guardar y cerrar.
+reviso que se haya modificado con cat hostname.
+
+
+2) Servicios
+Nota: las pruebas de conectividad y acceso al sitio web deben realizarse desde una máquina física u otra máquina en la misma red.
+Descargamos PuTTY, que es un cliente SSH que nos va a permitir conectarnos a la MV host, y opciones avanzadas como uso de claves publicas .pub.
+
+1- SSH: instalar y configurar el servicio de SSH. El servidor debe permitir el acceso al usuario root mediante una clave privada/pública, proporcionada junto con la máquina virtual en Blackboard.
+Verificamos que SSH se encuentre en el sistema
+Mediante el comando: /etc/init.d/ssh status      o    /etc/init.d/ssh start    o   systemctl status ssh
+o un cat /etc/apt/sources.list
+apt show nombre_paquete
+Como no está descargado, vamos a descargarlo.
+Primero acutalizamos la lista de paquetes, para evitar errores con versiones actuales
+Hubieron errores, poniendo que la MV estaba conectada a cable arreglo la conexión a internet, dado que puedo pingear a google.com (ping google.com) pero no permite apt-get update. DNS tambien funciona.
+AJA; http://cdn2-fastly.deb.debian.org/ no lleva a ningun lado. si pruebo https://deb.debian.org/ SI EXISTE.
+deberian ser
+deb http://deb.debian.org/debian bullseye main
+deb http://security.debian.org/debian-security bullseye-security main
+deb http://deb.debian.org/debian bullseye-updates main
+para editarlo, antes creo un backup, sources.list.backup
+con vim borro toda la parte agregada!
+seguir haciendo.
+cdn2-fastly ya no es un mirror vigente!
+Dado que el sources.list se encontraba desactulizado, busque en mi mv principal nueva la misma carpeta y copie el contenido
+
+ahora todo funciona perfecto.
+instalo ssh: apt-get install openssh-server
+pongo s.
+verifico que esté bien descargado y corriendo.
+systemctl status ssh
+systemctl muestra todos los servicios activos.
+systemctl is the main tool used to introspect and control the state of the "systemd" system and service manager
+NO ME GUSTA MI RESOLUCIÓN, SIRVE PERO MUY INEFICIENTE.
+Considero, que utilizando el ejemplo directo de la pagina oficial de DEBIAN, https://wiki.debian.org/es/SourcesList, oldstable.
+deb http://deb.debian.org/debian bullseye main
+deb-src http://deb.debian.org/debian bullseye main
+–
+deb http://deb.debian.org/debian-security/ bullseye-security main
+deb-src http://deb.debian.org/debian-security/ bullseye-security main
+–
+deb http://deb.debian.org/debian bullseye-updates main
+deb-src http://deb.debian.org/debian bullseye-updates main
+NOTA: agregue contrib non-free por las dudas al final de todas las lineas, desconozco si fue realmente necesario.
+contrib y non-free me actualizan los repositorios para paquetes de software propietario y con restricciones de licencia, osea que estuvo bien agregarlo! por ejemplo si despues quiero instalar drivers de nvidia esto lo va a requerir.
+Ahora ls /etc/init.d/ssh aparece! | y el directorio /etc/ssh
+El servidor debe permitir el acceso al usuario root mediante una clave privada/pública.
+la conexion se puede hacer desde un clon de la mv, no hace falta PuTTY al parecer.
+primero editar en la mv host (que actua como server), habilitar permitrootlogin a yes, en vez de prohibit-password, para que permitir a un root conectarse via ssh.
+por buena practica se deshabilita y se usa un usuario normal con sudo?
+hago una copia de sshd_config como sshd_config_backup
+edito: vim sshd_config ` que está en /etc/ssh
+cambio permitrootlogin a yes y guardo (wq o wq!).
+toco “i” para poder editarlo, dsp ESC, dsp :, dsp wq y listorti.
+PermitRootLogin yes y descomentarlo (#)
+PublicKeyAuthentication yes y descomentarlo (#)
+restartear ssh para que tome efecto!
+/etc/init.d/ssh restart
+ip a para ver la ip para conectarme.
+me conecto a la ip seleccionada con PuTTY.
+192.168.1.39, con root, palermo.
+si lo quiero hacer desde shared folders de virtualbox, lo cual no logre: Tengo que compartir las claves a la máquina virtual, entonces voy a crear una shared folder desde la configuración de la MV en VirtualBox, con el URL de la carpeta y le agrego auto-mount, para que automaticamente la carpeta al logearse, si no tendria que montarla yo cada vez que entro. alto bardo
+No se encunetra en donde debería (cd /media/sf_nombrecarpeta)
+Ahora puedo pasar los archivos y se guardan en /root/ usando winSCP
+HAPPY!
+WAIT, ahora que todo funciona bien, tengo que poder conectarme con las llaves
+creo un directorio en root, llamado .ssh/  : /root/.ssh , que es a donde va a buscar por default las contrase;as (segun el archivo sshd_config, que dsp hay que descomentar y poner bien la ubicacion)
+le doy permiso a root de 700 para darle full access al root a la carpeta
+copio mis archivos de clave adnetro de .ssh, renombro la privada a id_rsa y le doy permiso 600, para solo rw al root, y nadie mas tenga permisos de nada. despues paso la clave publica como id_rsa.pub  \ desconocemos pero nos funciono que la clave publica tambien se llame authorizedkeys
+le damos permiso de chmod 700 a la carpeta .ssh para que el root pueda hacer todo lo necesario.
+
+2- WEB: instalar y configurar el servidor Apache con soporte para PHP (versión 7.3 o superior). Configurar el servidor para servir el archivo “index.php” y “logo.png”, disponible junto con la máquina virtual en Blackboard.
+After letting the command run, all required packages are installed and we can test it out by typing in our IP address for the web server.
+apt-get install apache2
+systemctl status apache2 : working!
+chequeo entrando en google a mi ip y entra al server!
+todo lo que se ve en el server de apache, está en /var/www/html
+instalo php, con apt-get install php, v7.4
+verifico versión e instalación con php -v.
+para que php funcione con apache tengo que instalra un modulo específico
+Example #1 Debian Install Example with Apache 2
+# apt install php-common libapache2-mod-php php-cli
+APT will automatically install the PHP module for Apache 2 and all of its dependencies, and then activate it. Apache should be restarted in order for the changes take place.
+Reinicio server con /etc/init.d/apache 2 restart
+Con winscp y me pase el .php y el logo a el home del root, y ahora los copio a /var/www/html
+Apache dice de borrar el index.html, asi que porlas hago un backup al home del root y lo borro del /var/www/html
+
+3) Base de datos: instalar y configurar MariaDB. Cargar, en el motor de base de datos, el script SQL, denominado “db.sql”, disponible junto con la máquina virtual en Blackboard.
+como el codigo .php tiene un codigo de bdd, voy a instalar mariadb.
+apt-get install mariadb
+apt/get instal php
+para que haga la conexión correctamente entre php y el sql, instalo tambien el paquete php-sql 
+apt-get install php-mysql
+Dado que instalé varias cosas, puedo reiniciarlas una por una o rebooteo todo y listo.
+puedo ver todos los servicios que instale con: netstat -natupl
+en orden: numerico, all, tcp, udp, program, listen.
+Tengo que pasar el archivo sql del /root/ a /var/www/html??
+NO PORQUE CUALQUIERA PUEDE ACCEDERLOOOO!
+PARA IMPORTAR EL db.sql a sql, tengo que usar <
+mysql < /root/db.sql
+para poder hacer esto tuve que cambiar la configuracion del vm para que matchee la de mi t480 104 US LAYOUT + Alt Grl. 
+puedo entrar a mysql con: mysql
+Chequeo la base de datos que se haya cargado: show databases; (dsp de mysql)
+para salir pongo: quit;
+tiene que aparecer la bases de datos de ingeniería.
+Para visualizar los archivos en la ip de nuestro server de debian, tenemos que hacer ip/file
+se cambio la ip, revisar con ip a.
+ejemplo: 192.168.1.49/index.php o 192.168.1.49/logo.png
+Ahora al ingresar a la ip en la web puedo ver la bdd.
+NOTA
+puedo ver los logs del server en apache
+cd /var/log/apache2
+ls -ltr
+lista larga, por tiempo, invertida.
+cat error.log  | cat access.log
+systemctl restart apache2 : reseteo servicios de apache.
+No hace falta que ponga ip/index.php en google para abrir la base de datos, porque al borrar el index.html, la ip abre directo index.php.
+
+3) Configuración
+1- Configurar la interfaz de red con una IP estática en el archivo de configuración. La IP debe pertenecer al mismo rango red de la máquina física. 2- El archivo de configuración debe incluir los campos ADDRESS, NETMASK y GATEWAY.
+
+basado en el ejemplo del profe!
+En windows, mi pc tiene IP: 192.168.56.1.
+Corresponde a la clase C para redes de hogar.
+Va de 192.168.0.0 hasta 192.168.255.255
+Le voy a poner 192.168.1.49, que esta en el mismo rango.
+El archivo de la configuracion de ip esta en /etc/network/interfaces
+statics
+address: 192.168.1.49 - clase c, igual que la de mi pc.
+netmask: 255.255.255.0 - corresponde a la clase c.
+gateway: 192.168.1.1
+El gateway es la salida por el VBOX hacia mi computadora, entonces tengo que ver el gateway default de mi pc. haciendo ipconfig veo que mi default gateway es> 192.168.1.1
+Tambien esta el comando ip route show default
+Segun debian en NetworkConfiguration, dice que posterior a un cambio en interfaces, hacer un reseteo de la network> systemctl restart networking
+auto enp0s3, agregar eso para que arranque con esa ip y la asigne ni bien reinicio el sistema. queda asi>
+
+
+
+4) Almacenamiento
+1-Agregar un nuevo disco de 10 GB adicional a la máquina virtual.
+directo del apunte. apagar la maquina
+desde virtualbox creo el disco, lo agrego a la lista.
+prendo la maquina y pongo lsblk (list blocks) para ver si en sdc se creo el disco.
+Para agregar un disco hay que apagar la máquina. En virtualbox poweroff, despues ir en vb a configuración, almacenamiento, añadir disco duro (o unidad optica),crear, asignar GB (teniendo en cuenta nuestro disco fisico real), reservar completamente/dinámicamente, aceptar e iniciar la maquina virtual. finalizar con lsblk y ls /dev
+
+2-Crear dos particiones estándar (tipo 83), con las siguientes capacidades: /www_dir: 3 GB —      /backup_dir: 6 GB
+igual que en el apunte parte2
+
+3-Configurar el directorio /www_dir para alojar el archivo index.php y logo.png. Actualizar el archivo de configuración de Apache para que éste apunte a la nueva ubicación (ver archivos 000-default.conf y apache2).
+le copio ambos archivos a www_dir con el mismo nombre
+/etc/apache2/sites-available/000-default.conf
+modifico document root para que agarre de /root/www_dir
+/etc/apache2/apache2.conf es para configuraciones globales de apache, no usar para urls especificas
+
+4-5-Configurar el directorio /www_dir para que se monte automáticamente al iniciar el sistema operativo.Configurar el directorio /backup_dir para que se monte automáticamente al iniciar el sistema operativo.
+vim /etc/fstab
+
+df -h, chequeo que este todo ok
+Linux command used to display disk space information in a human-readable format
+
+Nota: se debe crear un archivo en /proc llamado “particion”, y redirigir el contenido del archivo “partitions” ubicado en /proc (el archivo original es efímero y se pierde al apagar la máquina).
+En Linux, no puedes crear archivos directamente en /proc, ya que es un sistema de archivos virtual gestionado por el kernel. El contenido de /proc es generado dinámicamente y no se puede modificar como un sistema de archivos normal (como /home, /etc, etc.).
+se puede crear un archivo fuera de proc, con un script, para que con cron, cada cierto tiempo se updatee.
+Dado que estamos cortos de tiempo solo voy a copiar el archivo al /root
+
+
+
+POR QUE VA A BUSCAR ARCHIVOS EN /var/www/html
+cd /etc/apache2/ : voy a los config de apache
+cd sites-enabled
+ls
+vi 000-default.conf
+en DocumentRoot, es a donde va a buscar todos los archivos, para exponer ocmo servicio
+solo por moverlo no va a cambiar de donde busca los archivos, tengo que tener los permisos en /etc/apache2/apache2.conf // clase del 17 en 1:46h
+
+
+
+5) Backup
+1 - 6
+mkdir scripts
+touch backup_full.sh
+script
+#!/bin/bash
+
+
+#FunciÃ³n de ayuda
+mostrar_ayuda() {
+	echo "Uso: $0 <origen> <destino>"
+	echo
+	echo "Este script crea un archivo .tar.gz como backup de un directorio o archivo"
+	echo
+	echo "Ejemplo"
+	echo " $0 /var/log /backup_dir"
+}
+
+
+if [ "$1" == "-help" ]; then
+	mostrar_ayuda
+	exit 0
+fi
+
+
+
+
+#Argumentos
+
+
+ORIGEN="$1"
+DESTINO="$2"
+
+
+#Verificar que el origen y el destino existan
+if [ ! -e "$ORIGEN" ]; then
+	echo "Argumento invÃ¡lido: $ORIGEN"
+	exit 1
+fi
+
+
+if [ ! -e "$DESTINO" ]; then
+	echo "Argumento invÃ¡lido: $DESTINO"
+	exit 1
+fi
+
+
+#Fecha en formato ANSI
+FECHA=$(date +%Y%m%d)
+
+
+NOMBRE=$(basename "$ORIGEN")
+	
+ARCHIVO="${DESTINO}/${NOMBRE}bkp${FECHA}.tar.gz"
+
+
+tar -czf "$ARCHIVO" "$ORIGEN"
+
+
+echo "Backup completo: $ARCHIVO"
+darle permisos de ejecucion: chmod +x /opt/scripts/backups_full.sh
+
+7- El script debe ser incluido en un calendario de tareas para correr automáticamente: TODOS LOS DÍAS a las 00:00 hs: Backupear “/var/logs” LUNES, MIÉRCOLES, VIERNES a las 23:00 hs: Backupear “/www_dir”
+en /etc/crontab se puede editar a mano
+vim crontab
+creo mkdir /var/logs
+
+dado que lo copie de mi compi y me lo pase por winscp, y fue por windows, me agrego datos invisibles al bash, entonces instale dos2unix, hice dos2unix backup_full.sh
+despues ejecuto /opt/scripts/./backup_full.sh /var/logs /backup_dir
+6) Entregables
+github acepta hasta 25MB por paquete, asi que hay que particionar el var.
+
+para comprimirlo 
+
+para particionar el var
